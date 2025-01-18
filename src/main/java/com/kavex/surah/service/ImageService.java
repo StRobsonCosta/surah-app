@@ -1,7 +1,9 @@
 package com.kavex.surah.service;
 
 import com.google.zxing.WriterException;
+import com.kavex.surah.service.interfaces.CloudStorageService;
 import com.kavex.surah.util.QRCodeUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,10 +11,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,70 +25,89 @@ public class ImageService {
     @Value("${app.image.upload-dir}")
     private String uploadDir;
 
-    @Value("${app.image.s3.bucket}")
-    private String s3Bucket;
+    @Value("${file.storage.type:local}")
+    private String storageType;
 
-    public String uploadImageLocal(MultipartFile file) {
+    @Autowired
+    private CloudStorageService cloudStorageService;
+
+    public String uploadImage(MultipartFile file) {
+        if (file.isEmpty() || file.getOriginalFilename() == null) {
+            throw new IllegalArgumentException("File is empty or has an invalid name.");
+        }
+
+        String fileName = file.getOriginalFilename();
+        String qrFileName = "qr_" + fileName;
+
         try {
-            // Salvar no servidor local
-            String filePath = uploadDir + "/" + file.getOriginalFilename();
-            Files.copy(file.getInputStream(), Paths.get(filePath));
-            return filePath;
-
-            // Para upload no S3, substitua pela lógica de upload para AWS
-            // String s3Url = uploadToS3(file);
-            // return s3Url;
-        } catch (IOException e) {
+            if ("local".equalsIgnoreCase(storageType)) {
+                return handleLocalStorage(file, fileName, qrFileName);
+            } else if ("cloud".equalsIgnoreCase(storageType)) {
+                return handleCloudStorage(file, fileName, qrFileName);
+            } else {
+                throw new IllegalArgumentException("Invalid storage type: " + storageType);
+            }
+        } catch (Exception e) {
             throw new RuntimeException("Failed to upload image", e);
         }
     }
 
-    public String uploadImage(MultipartFile file) {
-        try {
-            // Salvar a imagem original no servidor local
-            String originalFilePath = uploadDir + "/" + file.getOriginalFilename();
-            Files.copy(file.getInputStream(), Paths.get(originalFilePath));
+    private String handleLocalStorage(MultipartFile file, String fileName, String qrFileName) throws IOException, WriterException {
+        // Salvar imagem original localmente
+        Path originalPath = Paths.get(uploadDir, fileName);
+        Files.copy(file.getInputStream(), originalPath, StandardCopyOption.REPLACE_EXISTING);
 
-            // Gerar o QR Code e adicioná-lo à imagem
-            BufferedImage originalImage = ImageIO.read(new File(originalFilePath));
-            String qrText = "https://example.com/view/" + file.getOriginalFilename();
-            BufferedImage imageWithQRCode = QRCodeUtil.addQRCodeToImage(originalImage, qrText, 100);
+        // Gerar QR Code e adicionar à imagem
+        BufferedImage originalImage = ImageIO.read(originalPath.toFile());
+        String qrText = "http://localhost:8080/uploads/" + fileName;
+        BufferedImage imageWithQRCode = QRCodeUtil.addQRCodeToImage(originalImage, qrText, 100);
 
-            // Salvar a imagem com o QR Code
-            String qrFilePath = uploadDir + "/qr_" + file.getOriginalFilename();
-            ImageIO.write(imageWithQRCode, "png", new File(qrFilePath));
+        // Salvar a imagem com QR Code localmente
+        Path qrPath = Paths.get(uploadDir, qrFileName);
+        ImageIO.write(imageWithQRCode, "png", qrPath.toFile());
 
-            return "http://localhost:8080/uploads/qr_" + file.getOriginalFilename();
-        } catch (IOException | RuntimeException | WriterException e) {
-            throw new RuntimeException("Failed to upload image", e);
-        }
+        return "http://localhost:8080/uploads/" + qrFileName;
+    }
+
+    private String handleCloudStorage(MultipartFile file, String fileName, String qrFileName) throws IOException, WriterException {
+        // Upload da imagem original para a nuvem
+        String originalFileUrl = cloudStorageService.uploadFile(file.getInputStream(), fileName);
+
+        // Gerar QR Code baseado na URL da imagem na nuvem
+        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+        BufferedImage imageWithQRCode = QRCodeUtil.addQRCodeToImage(originalImage, originalFileUrl, 100);
+
+        // Fazer upload da imagem com QR Code para a nuvem
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(imageWithQRCode, "png", outputStream);
+        InputStream qrImageInputStream = new ByteArrayInputStream(outputStream.toByteArray());
+
+        return cloudStorageService.uploadFile(qrImageInputStream, qrFileName);
     }
 
     public List<String> getImagesWithQRCode() {
-        List<String> urls = new ArrayList<>();
         File folder = new File(uploadDir);
+        if (!folder.exists() || !folder.isDirectory()) {
+            throw new IllegalStateException("Upload directory does not exist: " + uploadDir);
+        }
 
-        for (File file : folder.listFiles()) {
+        List<String> urls = new ArrayList<>();
+        File[] files = folder.listFiles((dir, name) -> name.endsWith(".png") || name.endsWith(".jpg"));
+
+        if (files == null) {
+            return urls;
+        }
+
+        for (File file : files) {
             try {
-                // Adicionar QR Code
-                BufferedImage image = ImageIO.read(file);
-                String qrText = "https://example.com/view/" + file.getName();
-                BufferedImage qrCode = QRCodeUtil.generateQRCode(qrText);
-
-                Graphics2D g2d = image.createGraphics();
-                g2d.drawImage(qrCode, image.getWidth() - qrCode.getWidth() - 10, 10, null);
-                g2d.dispose();
-
-                // Salvar imagem com QR Code
                 String qrFilePath = uploadDir + "/qr_" + file.getName();
-                ImageIO.write(image, "png", new File(qrFilePath));
-
-                // Adicionar URL da imagem gerada
                 urls.add("http://localhost:8080/uploads/qr_" + file.getName());
             } catch (Exception e) {
-                e.printStackTrace();
+                // Registrar erro ao processar arquivo específico
+                System.err.println("Error processing file: " + file.getName() + " - " + e.getMessage());
             }
         }
         return urls;
     }
 }
+
