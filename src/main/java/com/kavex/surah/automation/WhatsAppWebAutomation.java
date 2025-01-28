@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class WhatsAppWebAutomation {
 
-    @Value("${app.chromedriver.exe}")
+    @Value("${app.chromedriver.path.exe}")
     private String chromedriver;
 
     public static void main(String[] args) throws InterruptedException {
