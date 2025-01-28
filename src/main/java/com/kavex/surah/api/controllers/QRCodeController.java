@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -41,8 +42,7 @@ public class QRCodeController {
             BufferedImage imageWithQRCode = QRCodeUtil.addQRCodeToImage(originalImage, qrCodeData, 100);
 
             // Salvar a nova imagem
-            String outputPath = uploadDir + "/";
-//            String outputPath = "uploads/qrcode_with_image.png";
+            String outputPath = uploadDir + "imageName";
             ImageIO.write(imageWithQRCode, "png", new File(outputPath));
 
             return ResponseEntity.ok("QR Code generated and saved at: " + outputPath);
