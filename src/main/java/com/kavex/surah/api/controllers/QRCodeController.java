@@ -1,5 +1,6 @@
 package com.kavex.surah.api.controllers;
 
+import com.kavex.surah.integration.WhatsAppService;
 import com.kavex.surah.service.QRCodeService;
 import com.kavex.surah.service.WhatsAppIntegrationService;
 import com.kavex.surah.util.QRCodeUtil;
@@ -25,6 +26,7 @@ public class QRCodeController {
 
     private final QRCodeService qrCodeService;
     private final WhatsAppIntegrationService whatsAppIntegrationService;
+    private final WhatsAppService whatsAppService;
 
     @Value("${app.image.upload-dir}")
     private String uploadDir;
@@ -78,7 +80,7 @@ public class QRCodeController {
                 .orElseGet(() -> ResponseEntity.status(404).body("QR Code not found"));
     }
 
-    @PostMapping("/scan")
+    @PostMapping("/scan") // testar e alterar o q for necessario
     public ResponseEntity<?> sendImageViaWhatsApp(
             @RequestParam String qrCodeData,
             @RequestParam String phoneNumber) {
@@ -89,6 +91,22 @@ public class QRCodeController {
         return qrCodeService.findImageByQRCode(qrCodeData)
                 .map(imageQRCode -> {
                     whatsAppIntegrationService.sendImage(phoneNumber, imageQRCode.getImageUrl(), "Here is your photo!");
+                    return ResponseEntity.ok("Image sent to " + phoneNumber);
+                })
+                .orElseGet(() -> ResponseEntity.status(404).body("QR Code not found"));
+    }
+
+    @PostMapping("/download")
+    public ResponseEntity<?> downloadViaWhatsApp(
+            @RequestParam String qrCodeData,
+            @RequestParam String phoneNumber) {
+        if (qrCodeData == null || qrCodeData.isBlank()) {
+            return ResponseEntity.badRequest().body("Invalid QR Code data");
+        }
+
+        return qrCodeService.findImageByQRCode(qrCodeData)
+                .map(imageQRCode -> {
+                    whatsAppService.sendImage(phoneNumber, imageQRCode.getImageUrl());
                     return ResponseEntity.ok("Image sent to " + phoneNumber);
                 })
                 .orElseGet(() -> ResponseEntity.status(404).body("QR Code not found"));
