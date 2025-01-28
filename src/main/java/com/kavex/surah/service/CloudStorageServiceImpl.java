@@ -2,11 +2,13 @@ package com.kavex.surah.service;
 
 import java.io.InputStream;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.kavex.surah.service.interfaces.CloudStorageService;
 
 @Service
+@RequiredArgsConstructor
 public class CloudStorageServiceImpl implements CloudStorageService {
 
 	@Override

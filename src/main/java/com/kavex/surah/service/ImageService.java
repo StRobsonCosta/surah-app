@@ -3,6 +3,7 @@ package com.kavex.surah.service;
 import com.google.zxing.WriterException;
 import com.kavex.surah.service.interfaces.CloudStorageService;
 import com.kavex.surah.util.QRCodeUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ImageService {
 
     @Value("${app.image.upload-dir}")

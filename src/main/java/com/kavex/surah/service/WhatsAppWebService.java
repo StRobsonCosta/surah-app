@@ -1,5 +1,6 @@
 package com.kavex.surah.service;
 
+import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class WhatsAppWebService {
 
     @Value("${app.chromedriver.path.exe}")

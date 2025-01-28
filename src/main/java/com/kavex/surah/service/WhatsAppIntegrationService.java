@@ -1,5 +1,6 @@
 package com.kavex.surah.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class WhatsAppIntegrationService {
 
     @Value("${whatsapp.api.url}")

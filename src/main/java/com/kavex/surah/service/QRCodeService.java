@@ -4,6 +4,7 @@ import com.google.zxing.WriterException;
 import com.kavex.surah.model.ImageQRCode;
 import com.kavex.surah.repository.ImageQRCodeRepository;
 import com.kavex.surah.util.QRCodeUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.awt.image.BufferedImage;
@@ -11,9 +12,10 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class QRCodeService {
 
-    private final ImageQRCodeRepository imageQRCodeRepository;
+    private ImageQRCodeRepository imageQRCodeRepository;
 
     public QRCodeService(ImageQRCodeRepository imageQRCodeRepository) {
         this.imageQRCodeRepository = imageQRCodeRepository;
