@@ -68,7 +68,7 @@ public class FolderWatcher {
 
         // Gera a imagem com QRCode
         System.out.println("Adicionando QRCode na Imagem");
-        BufferedImage imageWithQRCode = qrCodeService.addQRCodeToImage(originalImage, "teste de geração QRCode");
+        BufferedImage imageWithQRCode = qrCodeService.addQRCodeToImage(originalImage, fileName.toString());
 
         String outputPath = qrCodedImage + fileName;
         // Verifica se o diretório existe e cria, se necessário
