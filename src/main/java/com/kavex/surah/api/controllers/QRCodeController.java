@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -56,24 +54,6 @@ public class QRCodeController {
         }
     }
 
-//    @GetMapping("/image/{filename}")
-//    public ResponseEntity<?> getImage(@PathVariable String filename) {
-//        try {
-//            Path imagePath = Paths.get("uploads", filename);
-//            Resource resource = new UrlResource(imagePath.toUri());
-//
-//            if (!resource.exists() || !resource.isReadable()) {
-//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
-//            }
-//
-//            return ResponseEntity.ok()
-//                    .contentType(MediaType.IMAGE_PNG)
-//                    .body(resource);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving image: " + e.getMessage());
-//        }
-//    }
-
     @GetMapping("/images/{fileName}")
     public ResponseEntity<?> getImage(@PathVariable String fileName) {
         Path path = Paths.get("uploads/" + fileName);
@@ -88,18 +68,6 @@ public class QRCodeController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
                 .body(resource);
     }
-
-
-//    @PostMapping("/scanning")
-//    public ResponseEntity<?> findImageByQRCode(@RequestParam String qrCodeData) {
-//        if (qrCodeData == null || qrCodeData.isBlank()) {
-//            return ResponseEntity.badRequest().body("Invalid QR Code data");
-//        }
-//
-//        return qrCodeService.findImageByQRCode(qrCodeData)
-//                .map(imageQRCode -> ResponseEntity.ok(imageQRCode.getImageUrl()))
-//                .orElseGet(() -> ResponseEntity.status(404).body("QR Code not found"));
-//    }
 
     @PostMapping("/sendImage")
     public ResponseEntity<?> sendImageByQRCode(

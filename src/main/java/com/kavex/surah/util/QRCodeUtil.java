@@ -11,12 +11,6 @@ import java.io.IOException;
 
 public class QRCodeUtil {
 
-//    public static BufferedImage generateQRCode(String text) throws Exception {
-//        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-//        var bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 300, 300);
-//        return MatrixToImageWriter.toBufferedImage(bitMatrix);
-//    }
-
     public static BufferedImage generateQRCode(String text) throws WriterException {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         var bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 100, 100);
