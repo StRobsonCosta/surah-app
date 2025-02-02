@@ -42,8 +42,10 @@ public class WhatsAppService {
 //
 //            // Twilio aceita envio de imagens via URL, então é necessário hospedar a imagem ou usar um workaround
 //            String dataUrl = "data:" + mimeType + ";base64," + base64Image;
+//
+//            String localServerUrl = "http://localhost:8082/" + imageFile;
 
-            String localServerUrl = "http://localhost:8080/" + imageFile;
+            String localServerUrl = "https://0102-2804-5b30-2c35-a700-1fcf-1dbe-8450-a093.ngrok-free.app" + imageFile;
 
             Twilio.init(accountSid, authToken);
             Message message = Message.creator(
