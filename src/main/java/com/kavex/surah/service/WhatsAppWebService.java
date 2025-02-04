@@ -15,9 +15,6 @@ public class WhatsAppWebService {
     @Value("${app.chromedriver.path.exe}")
     private String chromeDriverPath;
 
-
-    private static final String DRIVER_PATH = "C:/caminho/para/chromedriver.exe";// definir com injeção chromeDriverPath
-
     public void sendMessage(String contactName, String message) {
         System.setProperty("webdriver.chrome.driver", chromeDriverPath);
         WebDriver driver = new ChromeDriver();
