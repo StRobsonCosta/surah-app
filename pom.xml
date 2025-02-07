@@ -125,10 +125,14 @@
 			<artifactId>jetty-util</artifactId>
 			<version>12.0.16</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-io</artifactId>
+			<version>12.0.16</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-security</artifactId>
 			<version>12.0.16</version>
 		</dependency>
 

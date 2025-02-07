@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,6 +36,8 @@ public class QRCodeController {
     @Value("${app.image.monitoring-dir}")
     private String downloadDir;
 
+    private static final String IMAGE_DIRECTORY = "/home/robson/Imagens/Monitoramento/";
+
     @PostMapping("/generate")
     public ResponseEntity<?> generateQRCodeWithImage(@RequestParam String qrCodeData, @RequestParam String imagePath) {
         try {
@@ -54,19 +57,38 @@ public class QRCodeController {
         }
     }
 
-    @GetMapping("/images/{fileName}")
-    public ResponseEntity<?> getImage(@PathVariable String fileName) {
-        Path path = Paths.get("uploads/" + fileName);
-        Resource resource = new FileSystemResource(path.toFile());
+//    @GetMapping("/images/{fileName}")
+//    public ResponseEntity<?> getImage(@PathVariable String fileName) {
+//        Path path = Paths.get("uploads/" + fileName);
+//        Resource resource = new FileSystemResource(path.toFile());
+//
+//        if (!resource.exists() || !resource.isReadable()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
+//        }
+//
+//        return ResponseEntity.ok()
+//                .contentType(MediaType.IMAGE_PNG)
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+//                .body(resource);
+//    }
 
-        if (!resource.exists() || !resource.isReadable()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
+    @GetMapping("/{fileName}")
+    public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
+        try {
+            Path imagePath = Paths.get(IMAGE_DIRECTORY).resolve(fileName).normalize();
+            Resource resource = new UrlResource(imagePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG) // Ajuste conforme o formato das imagens
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
-                .body(resource);
     }
 
     @PostMapping("/sendImage")
