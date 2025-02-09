@@ -6,7 +6,6 @@ import com.kavex.surah.service.WhatsAppIntegrationService;
 import com.kavex.surah.util.QRCodeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -114,20 +113,4 @@ public class QRCodeController {
         return ResponseEntity.ok("Imagem enviada para " + phoneNumber);
     }
 
-
-    @PostMapping("/download")
-    public ResponseEntity<?> downloadViaWhatsApp( // para Cenarios AWS
-            @RequestParam String qrCodeData,
-            @RequestParam String phoneNumber) {
-        if (qrCodeData == null || qrCodeData.isBlank()) {
-            return ResponseEntity.badRequest().body("Invalid QR Code data");
-        }
-
-        return qrCodeService.findImageByQRCode(qrCodeData)
-                .map(imageQRCode -> {
-                    whatsAppService.sendImage(phoneNumber, imageQRCode.getImageUrl());
-                    return ResponseEntity.ok("Image sent to " + phoneNumber);
-                })
-                .orElseGet(() -> ResponseEntity.status(404).body("QR Code not found"));
-    }
 }
